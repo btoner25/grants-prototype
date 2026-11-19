@@ -35,7 +35,7 @@ The product owner has no coding experience. Claude writes all the code.
 ## Phases
 
 0. Setup (done)
-1. Clickable mockup with fake data: opportunities, application form, reviewer scoring, staff dashboard
+1. Clickable mockup with fake data: opportunities, application form, reviewer scoring, staff dashboard (built; awaiting tester feedback at Gate A)
 2. Applicant side: database, sign-in, apply and submit (F-01 to F-04)
 3. Review and award (F-05 to F-10)
 4. Post-award and closeout (F-11 to F-15)
@@ -48,3 +48,5 @@ The product owner has no coding experience. Claude writes all the code.
 ## Decisions log
 
 - 2026-11-18: Chose Next.js + Tailwind. Phase 0 setup complete.
+- 2026-11-18: Phase 1 mockup built. Fake data lives in `src/lib/data.ts`. Light theme only for now.
+  Dynamic pages use `export const instant = false` (Next.js 16 requirement for pages that read the URL).
