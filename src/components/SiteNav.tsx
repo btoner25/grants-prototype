@@ -7,15 +7,20 @@ const links = [
   { href: "/opportunities", label: "Find grants" },
   { href: "/review", label: "Reviewer" },
   { href: "/staff", label: "Staff dashboard" },
+  { href: "/staff/builder", label: "Opportunity builder" },
 ];
 
 export default function SiteNav() {
   const pathname = usePathname();
+  // Highlight only the most specific matching link (e.g. builder, not dashboard).
+  const active = links
+    .filter((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
   return (
     <nav aria-label="Main">
       <ul className="flex flex-wrap gap-1">
         {links.map((l) => {
-          const current = pathname === l.href || pathname.startsWith(`${l.href}/`);
+          const current = l.href === active;
           return (
             <li key={l.href}>
               <Link

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
 import {
   activeGrants,
@@ -33,6 +34,10 @@ export default function StaffDashboard() {
       <p className="mt-2 text-zinc-700">
         Signed in as <strong>Jordan Program Manager</strong> (fictional). As of {longDate("2026-11-18")}.
       </p>
+      <Link href="/staff/builder"
+        className="mt-4 inline-block rounded bg-blue-800 px-4 py-2 font-medium text-white hover:bg-blue-900">
+        Create a funding opportunity
+      </Link>
 
       <h2 className="sr-only">Summary</h2>
       <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">

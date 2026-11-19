@@ -14,6 +14,7 @@ export type Opportunity = {
   closes: string; // ISO date
   status: "Open" | "Closed" | "Forecast";
   contact: string;
+  href?: string; // set for staff-built opportunities, which live at /grant?id=
 };
 
 export const opportunities: Opportunity[] = [

@@ -50,3 +50,8 @@ The product owner has no coding experience. Claude writes all the code.
 - 2026-11-18: Chose Next.js + Tailwind. Phase 0 setup complete.
 - 2026-11-18: Phase 1 mockup built. Fake data lives in `src/lib/data.ts`. Light theme only for now.
   Dynamic pages use `export const instant = false` (Next.js 16 requirement for pages that read the URL).
+- 2026-11-18: Added the Opportunity builder (`/staff/builder`). Staff create an opportunity, design
+  its form (`src/lib/formTypes.ts`), preview it, and publish to Find Grants. Published opportunities
+  live at `/grant?id=` and `/grant/apply?id=`, and forms render through `src/components/DynamicForm.tsx`.
+  Builder data and applications are stored in browser localStorage (`src/lib/localStore.ts`) until
+  Phase 2 adds a database. Every form always includes org info, amount requested and certification.

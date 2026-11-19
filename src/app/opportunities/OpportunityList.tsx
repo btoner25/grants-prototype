@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import StatusBadge from "@/components/StatusBadge";
 import { longDate, money, type Opportunity } from "@/lib/data";
+import { toListing } from "@/lib/formTypes";
+import { useCustomOpportunities } from "@/lib/localStore";
 
-export default function OpportunityList({ items }: { items: Opportunity[] }) {
+export default function OpportunityList({ items: builtIn }: { items: Opportunity[] }) {
+  const custom = useCustomOpportunities();
+  // Staff-published opportunities (from the builder) appear first.
+  const items = useMemo(
+    () => [...custom.filter((o) => o.published).map(toListing), ...builtIn],
+    [custom, builtIn],
+  );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All");
 
@@ -59,7 +67,7 @@ export default function OpportunityList({ items }: { items: Opportunity[] }) {
           <li key={o.id} className="rounded-lg border border-zinc-200 bg-white p-6">
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-xl font-semibold text-zinc-900">
-                <Link href={`/opportunities/${o.id}`} className="text-blue-800 underline hover:text-blue-950">
+                <Link href={o.href ?? `/opportunities/${o.id}`} className="text-blue-800 underline hover:text-blue-950">
                   {o.title}
                 </Link>
               </h2>
