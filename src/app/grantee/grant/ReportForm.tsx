@@ -14,18 +14,22 @@ const inputClass = "w-full rounded border border-zinc-500 bg-white px-3 py-2";
 export default function ReportForm({
   grant,
   period,
+  releasesHold,
   onCancel,
   onDone,
 }: {
   grant: GranteeGrant;
   period: ReportRow;
+  releasesHold: boolean;
   onCancel: () => void;
   onDone: (message: string) => void;
 }) {
-  const [activities, setActivities] = useState("");
-  const [people, setPeople] = useState("");
-  const [spent, setSpent] = useState("");
-  const [challenges, setChallenges] = useState("");
+  // A resubmission starts from the earlier answers (attachments are added again).
+  const prev = period.submitted;
+  const [activities, setActivities] = useState(prev?.activities ?? "");
+  const [people, setPeople] = useState(prev ? String(prev.peopleServed) : "");
+  const [spent, setSpent] = useState(prev ? String(prev.expenditures) : "");
+  const [challenges, setChallenges] = useState(prev?.challenges ?? "");
   const [files, setFiles] = useState<File[]>([]);
   const [certify, setCertify] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -67,9 +71,9 @@ export default function ReportForm({
         attachments,
       });
       onDone(
-        `Your ${period.label} progress report was submitted${
+        `Your ${period.label} progress report was ${prev ? "resubmitted" : "submitted"}${
           attachments.length ? ` with ${attachments.length} attachment${attachments.length === 1 ? "" : "s"}` : ""
-        }.${period.status === "Overdue" ? " Payments are no longer on hold for this report." : ""}`,
+        }.${releasesHold ? " Payments are no longer on hold for this report." : ""}`,
       );
     } catch {
       setSaving(false);
@@ -85,6 +89,16 @@ export default function ReportForm({
         {longDate(period.due)}. Fields marked <span aria-hidden="true">*</span>
         <span className="sr-only">with an asterisk</span> are required.
       </p>
+
+      {prev?.review && (
+        <div className="rounded-lg border-l-4 border-orange-600 bg-orange-50 p-4 text-zinc-900">
+          <h3 className="font-semibold">Changes requested by {prev.review.reviewer}</h3>
+          <p className="mt-1 whitespace-pre-line">{prev.review.comment}</p>
+          <p className="mt-2 text-sm text-zinc-700">
+            Your earlier answers are filled in below. Attach any supporting documents again.
+          </p>
+        </div>
+      )}
 
       <ErrorSummary ref={summaryRef} items={Object.entries(errors).map(([target, message]) => ({ target, message }))} />
 
@@ -158,7 +172,7 @@ export default function ReportForm({
       <div className="flex flex-wrap gap-3">
         <button type="submit" disabled={saving}
           className="rounded bg-blue-800 px-5 py-3 font-medium text-white hover:bg-blue-900 disabled:bg-zinc-500">
-          {saving ? "Submitting…" : "Submit progress report"}
+          {saving ? "Submitting…" : prev ? "Resubmit progress report" : "Submit progress report"}
         </button>
         <button type="button" onClick={onCancel}
           className="rounded border border-blue-800 bg-white px-5 py-3 font-medium text-blue-800 hover:bg-blue-50">

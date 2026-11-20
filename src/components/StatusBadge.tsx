@@ -14,6 +14,12 @@ const styles: Record<string, string> = {
   Upcoming: "bg-zinc-100 text-zinc-800 border-zinc-300",
   Paid: "bg-green-100 text-green-900 border-green-300",
   "Pending review": "bg-amber-100 text-amber-950 border-amber-300",
+  "Needs review": "bg-amber-100 text-amber-950 border-amber-300",
+  Accepted: "bg-green-100 text-green-900 border-green-300",
+  Approved: "bg-green-100 text-green-900 border-green-300",
+  "Changes requested": "bg-orange-100 text-orange-950 border-orange-300",
+  Returned: "bg-orange-100 text-orange-950 border-orange-300",
+  "All received": "bg-green-100 text-green-900 border-green-300",
 };
 
 export default function StatusBadge({ status }: { status: string }) {

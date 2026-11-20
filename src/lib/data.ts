@@ -124,23 +124,6 @@ export const rubric = [
   { id: "outcomes", label: "Outcomes and evaluation", max: 10, help: "Are outcomes measurable, with a plan to track them?" },
 ] as const;
 
-export type ActiveGrant = {
-  id: string;
-  grantee: string;
-  program: string;
-  amount: number;
-  spent: number;
-  nextReportDue: string;
-  reportStatus: "On time" | "Due soon" | "Overdue";
-};
-
-export const activeGrants: ActiveGrant[] = [
-  { id: "GR-2210", grantee: "Big Woods Theater Collective", program: "Community Arts Access", amount: 38_000, spent: 21_400, nextReportDue: "2026-12-31", reportStatus: "On time" },
-  { id: "GR-2187", grantee: "Lakewood Food Shelf", program: "Hunger Relief", amount: 120_000, spent: 97_500, nextReportDue: "2026-11-30", reportStatus: "Due soon" },
-  { id: "GR-2154", grantee: "Pine County Housing Trust", program: "Housing Stability", amount: 210_000, spent: 64_000, nextReportDue: "2026-10-31", reportStatus: "Overdue" },
-  { id: "GR-2133", grantee: "Mesabi Workforce Partners", program: "Workforce Training", amount: 175_000, spent: 150_250, nextReportDue: "2026-12-15", reportStatus: "On time" },
-];
-
 export function getOpportunity(id: string) {
   return opportunities.find((o) => o.id === id);
 }

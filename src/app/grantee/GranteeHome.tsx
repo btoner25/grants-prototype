@@ -5,7 +5,7 @@ import { useState } from "react";
 import StatusBadge from "@/components/StatusBadge";
 import { longDate, money } from "@/lib/data";
 import { todayIso } from "@/lib/formTypes";
-import { balances, granteeAccounts, granteeGrants, reportRows } from "@/lib/granteeData";
+import { balances, granteeAccounts, granteeGrants, holdFor, isReceived, reportRows } from "@/lib/granteeData";
 import { signInGrantee, useGranteePayments, useGranteeReports, useHydrated } from "@/lib/localStore";
 import PortalBar, { useGranteeAccount } from "./PortalBar";
 
@@ -34,8 +34,8 @@ export default function GranteeHome() {
       <ul className="mt-6 flex flex-col gap-6">
         {grants.map((g) => {
           const rows = reportRows(g, reports, today);
-          const next = rows.find((r) => r.status !== "Submitted");
-          const overdue = rows.find((r) => r.status === "Overdue");
+          const next = rows.find((r) => !isReceived(r));
+          const overdue = holdFor(rows, today);
           const b = balances(g, payments);
           const href = `/grantee/grant?id=${encodeURIComponent(g.id)}`;
           return (
@@ -51,8 +51,10 @@ export default function GranteeHome() {
 
               {overdue && (
                 <p className="mt-4 rounded border-l-4 border-red-700 bg-red-50 px-4 py-3 text-red-900">
-                  <strong>Action needed:</strong> your {overdue.label} progress report was due{" "}
-                  {longDate(overdue.due)}. Payments are on hold until you submit it.
+                  <strong>Action needed:</strong>{" "}
+                  {overdue.status === "Changes requested"
+                    ? `your grant manager asked for changes to your ${overdue.label} progress report, which was due ${longDate(overdue.due)}. Payments are on hold until you resubmit it.`
+                    : `your ${overdue.label} progress report was due ${longDate(overdue.due)}. Payments are on hold until you submit it.`}
                 </p>
               )}
 
@@ -81,7 +83,7 @@ export default function GranteeHome() {
                         {next.label}, due {longDate(next.due)} <StatusBadge status={next.status} />
                       </>
                     ) : (
-                      "All reports submitted"
+                      "All reports received"
                     )}
                   </dd>
                 </div>

@@ -32,6 +32,12 @@ export type GranteeGrant = {
   reports: ReportPeriod[];
 };
 
+/** A grant manager's decision on a report or payment request. */
+export type StaffReview = { comment: string; reviewer: string; reviewedAt: string };
+
+export type ReportDecision = "Accepted" | "Changes requested";
+export type PaymentStatus = "Pending review" | "Approved" | "Returned";
+
 export type GranteeReport = {
   id: string;
   grantId: string;
@@ -42,6 +48,7 @@ export type GranteeReport = {
   expenditures: number;
   challenges: string;
   attachments: Attachment[];
+  review?: StaffReview & { decision: ReportDecision };
 };
 
 export type PaymentRequest = {
@@ -55,7 +62,8 @@ export type PaymentRequest = {
   total: number;
   justification: string;
   attachments: Attachment[];
-  status: "Pending review";
+  status: PaymentStatus;
+  review?: StaffReview;
 };
 
 export const granteeAccounts: GranteeAccount[] = [
@@ -175,7 +183,13 @@ export const granteeGrants: GranteeGrant[] = [
   },
 ];
 
-export type ReportStatus = "Submitted" | "Overdue" | "Due soon" | "Upcoming";
+export type ReportStatus =
+  | "Accepted"
+  | "Submitted"
+  | "Changes requested"
+  | "Overdue"
+  | "Due soon"
+  | "Upcoming";
 
 export type ReportRow = ReportPeriod & {
   status: ReportStatus;
@@ -186,30 +200,56 @@ export type ReportRow = ReportPeriod & {
 const daysBetween = (from: string, to: string) =>
   Math.round((Date.parse(to) - Date.parse(from)) / 864e5);
 
-/** Combines the grant's report schedule with reports submitted in the portal. */
+/** Combines the grant's report schedule with reports submitted in the portal
+ * and the grant manager's decisions on them. */
 export function reportRows(g: GranteeGrant, submitted: GranteeReport[], today: string): ReportRow[] {
   return g.reports.map((r) => {
     const sub = submitted.find((s) => s.grantId === g.id && s.reportId === r.id);
     const submittedOn = r.submittedOn ?? (sub ? localDay(sub.submittedAt) : undefined);
-    const status: ReportStatus = submittedOn
-      ? "Submitted"
-      : r.due < today
-        ? "Overdue"
-        : daysBetween(today, r.due) <= 30
-          ? "Due soon"
-          : "Upcoming";
+    const status: ReportStatus = r.submittedOn
+      ? "Accepted" // submitted and accepted before the portal existed
+      : sub?.review?.decision === "Changes requested"
+        ? "Changes requested"
+        : sub?.review?.decision === "Accepted"
+          ? "Accepted"
+          : sub
+            ? "Submitted"
+            : r.due < today
+              ? "Overdue"
+              : daysBetween(today, r.due) <= 30
+                ? "Due soon"
+                : "Upcoming";
     return {
       ...r,
       submittedOn,
       status,
       submitted: sub,
-      canSubmit: !submittedOn && r.periodStart <= today,
+      canSubmit: (!submittedOn || status === "Changes requested") && r.periodStart <= today,
     };
   });
 }
 
+/** True when the report has been received (waiting for review or accepted). */
+export const isReceived = (r: ReportRow) => r.status === "Submitted" || r.status === "Accepted";
+
+/** Payments are held (F-12) while a report is past due and not received.
+ * A report sent back for changes after its due date still counts. */
+export const blocksPayments = (r: ReportRow, today: string) =>
+  r.status === "Overdue" || (r.status === "Changes requested" && r.due < today);
+
+export function holdFor(rows: ReportRow[], today: string) {
+  return rows.find((r) => blocksPayments(r, today));
+}
+
 export function balances(g: GranteeGrant, requests: PaymentRequest[]) {
-  const paid = g.payments.reduce((s, p) => s + p.amount, 0);
-  const pending = requests.filter((p) => p.grantId === g.id).reduce((s, p) => s + p.total, 0);
+  const mine = requests.filter((p) => p.grantId === g.id);
+  const sum = (list: PaymentRequest[]) => list.reduce((s, p) => s + p.total, 0);
+  const paid = g.payments.reduce((s, p) => s + p.amount, 0) + sum(mine.filter((p) => p.status === "Approved"));
+  const pending = sum(mine.filter((p) => p.status === "Pending review"));
   return { paid, pending, remaining: g.amount - paid - pending };
 }
+
+export const accountFor = (g: GranteeGrant) => granteeAccounts.find((a) => a.id === g.accountId);
+
+/** Fictional staff member who is "signed in" on the staff side of the prototype. */
+export const staffUser = "Jordan Program Manager";

@@ -61,3 +61,8 @@ The product owner has no coding experience. Claude writes all the code.
   attachments. Payment requests are blocked while any report is overdue (F-12). Uploaded files are
   stored in browser IndexedDB (`src/lib/fileStore.ts`); type/size limits in `src/components/FileUpload.tsx`.
   Dates from timestamps must use `localDay()` (local time), not `.slice(0, 10)` (UTC).
+- 2026-11-19: Added staff review of grantee submissions (`/staff/submissions`). Staff accept a report
+  or request changes, and approve or return payment requests, with a comment the grantee sees.
+  A report sent back after its due date keeps payments on hold; staff can't approve payments during a
+  hold. Approved requests count as paid. The staff dashboard's active grants now come from
+  `granteeGrants` plus browser data (the old static `activeGrants` list was removed).

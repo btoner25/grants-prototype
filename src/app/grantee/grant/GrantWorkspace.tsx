@@ -7,7 +7,7 @@ import AttachmentDownload from "@/components/AttachmentDownload";
 import StatusBadge from "@/components/StatusBadge";
 import { longDate, money } from "@/lib/data";
 import { localDay, todayIso } from "@/lib/formTypes";
-import { balances, granteeGrants, reportRows, type Attachment } from "@/lib/granteeData";
+import { balances, granteeGrants, holdFor, isReceived, reportRows, type Attachment } from "@/lib/granteeData";
 import { useGranteePayments, useGranteeReports, useHydrated } from "@/lib/localStore";
 import PortalBar, { useGranteeAccount } from "../PortalBar";
 import PaymentForm from "./PaymentForm";
@@ -56,8 +56,8 @@ export default function GrantWorkspace() {
 
   const today = todayIso();
   const rows = reportRows(g, localReports, today);
-  const overdue = rows.filter((r) => r.status === "Overdue");
-  const onHold = overdue.length > 0;
+  const hold = holdFor(rows, today);
+  const onHold = !!hold;
   const b = balances(g, localPayments);
   const myReports = localReports.filter((r) => r.grantId === g.id);
   const myPayments = localPayments.filter((p) => p.grantId === g.id);
@@ -90,7 +90,7 @@ export default function GrantWorkspace() {
   ].sort((x, y) => y.date.localeCompare(x.date));
 
   const heading = reportFor
-    ? `Submit progress report: ${reportFor.label}`
+    ? `${reportFor.status === "Changes requested" ? "Revise" : "Submit"} progress report: ${reportFor.label}`
     : mode?.kind === "payment"
       ? "Request a payment"
       : view;
@@ -106,17 +106,18 @@ export default function GrantWorkspace() {
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900">{g.program}</h1>
       <p className="mt-1 text-zinc-700">Grant {g.id} · {g.agency}</p>
 
-      {onHold && (
+      {hold && (
         <div className="mt-6 rounded-lg border-l-4 border-red-700 bg-red-50 p-4 text-red-900">
           <h2 className="font-semibold">Payments are on hold</h2>
           <p className="mt-1">
-            Your {overdue[0].label} progress report was due {longDate(overdue[0].due)}. Submit it to
-            release payments.
+            {hold.status === "Changes requested"
+              ? `Your grant manager asked for changes to your ${hold.label} progress report, which was due ${longDate(hold.due)}. Resubmit it to release payments.`
+              : `Your ${hold.label} progress report was due ${longDate(hold.due)}. Submit it to release payments.`}
           </p>
           {!(mode?.kind === "report") && (
             <button type="button" className="mt-3 rounded bg-red-800 px-4 py-2 font-medium text-white hover:bg-red-900"
-              onClick={() => { setView("Progress reports"); open({ kind: "report", reportId: overdue[0].id }); }}>
-              Submit the {overdue[0].label} report
+              onClick={() => { setView("Progress reports"); open({ kind: "report", reportId: hold.id }); }}>
+              {hold.status === "Changes requested" ? "Revise" : "Submit"} the {hold.label} report
             </button>
           )}
         </div>
@@ -145,7 +146,7 @@ export default function GrantWorkspace() {
         </h2>
 
         {reportFor ? (
-          <ReportForm grant={g} period={reportFor} onCancel={() => go("Progress reports")}
+          <ReportForm grant={g} period={reportFor} releasesHold={hold?.id === reportFor.id} onCancel={() => go("Progress reports")}
             onDone={(m) => go("Progress reports", m)} />
         ) : mode?.kind === "payment" ? (
           <PaymentForm grant={g} remaining={b.remaining} onCancel={() => go("Payment requests")}
@@ -220,9 +221,10 @@ export default function GrantWorkspace() {
                         {r.canSubmit ? (
                           <button type="button" className="text-blue-800 underline"
                             onClick={() => open({ kind: "report", reportId: r.id })}>
-                            Submit report<span className="sr-only">: {r.label}</span>
+                            {r.status === "Changes requested" ? "Revise and resubmit" : "Submit report"}
+                            <span className="sr-only">: {r.label}</span>
                           </button>
-                        ) : r.status === "Submitted" ? (
+                        ) : isReceived(r) ? (
                           <span className="text-zinc-600">Done</span>
                         ) : (
                           <span className="text-zinc-600">Opens {longDate(r.periodStart)}</span>
@@ -243,6 +245,15 @@ export default function GrantWorkspace() {
                       <h4 className="font-semibold text-zinc-900">
                         {g.reports.find((p) => p.id === r.reportId)?.label} · submitted {longDate(localDay(r.submittedAt))}
                       </h4>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-800">
+                        Grant manager review: <StatusBadge status={r.review?.decision ?? "Pending review"} />
+                      </div>
+                      {r.review?.comment && (
+                        <p className="mt-2 rounded border-l-4 border-zinc-400 bg-zinc-50 px-3 py-2 text-sm text-zinc-900">
+                          <span className="font-medium">Comment from {r.review.reviewer}, {longDate(localDay(r.review.reviewedAt))}:</span>{" "}
+                          <span className="whitespace-pre-line">{r.review.comment}</span>
+                        </p>
+                      )}
                       <dl className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                         <div><dt className="text-zinc-600">People served</dt><dd className="text-zinc-900">{r.peopleServed}</dd></div>
                         <div><dt className="text-zinc-600">Funds spent</dt><dd className="text-zinc-900">{money(r.expenditures)}</dd></div>
@@ -301,12 +312,13 @@ export default function GrantWorkspace() {
                     <th scope="col" className="px-4 py-2 text-right">Amount</th>
                     <th scope="col" className="px-4 py-2">Status</th>
                     <th scope="col" className="px-4 py-2 text-right">Attachments</th>
+                    <th scope="col" className="px-4 py-2">Grant manager note</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
                   {[
-                    ...myPayments.map((p) => ({ id: p.id, date: localDay(p.submittedAt), kind: p.kind, amount: p.total, status: p.status, files: p.attachments.length })),
-                    ...g.payments.map((p) => ({ id: p.id, date: p.date, kind: p.kind, amount: p.amount, status: "Paid", files: 0 })),
+                    ...myPayments.map((p) => ({ id: p.id, date: localDay(p.submittedAt), kind: p.kind, amount: p.total, status: p.status as string, files: p.attachments.length, note: p.review?.comment ?? "" })),
+                    ...g.payments.map((p) => ({ id: p.id, date: p.date, kind: p.kind, amount: p.amount, status: "Paid", files: 0, note: "" })),
                   ]
                     .sort((x, y) => y.date.localeCompare(x.date))
                     .map((p) => (
@@ -317,6 +329,7 @@ export default function GrantWorkspace() {
                         <td className="px-4 py-2 text-right text-zinc-800">{money(p.amount)}</td>
                         <td className="px-4 py-2"><StatusBadge status={p.status} /></td>
                         <td className="px-4 py-2 text-right text-zinc-800">{p.files || "—"}</td>
+                        <td className="whitespace-pre-line px-4 py-2 text-zinc-800">{p.note || "—"}</td>
                       </tr>
                     ))}
                 </tbody>

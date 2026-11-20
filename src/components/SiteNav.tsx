@@ -8,6 +8,7 @@ const links = [
   { href: "/grantee", label: "Grantee portal" },
   { href: "/review", label: "Reviewer" },
   { href: "/staff", label: "Staff dashboard" },
+  { href: "/staff/submissions", label: "Grantee submissions" },
   { href: "/staff/builder", label: "Opportunity builder" },
 ];
 

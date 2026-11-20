@@ -2,7 +2,7 @@
 // browser's localStorage. Phase 2 replaces this with a real database.
 import { useSyncExternalStore } from "react";
 import type { CustomOpportunity, Submission } from "./formTypes";
-import type { GranteeReport, PaymentRequest } from "./granteeData";
+import type { GranteeReport, PaymentRequest, ReportDecision, StaffReview } from "./granteeData";
 
 function createStore<T>(key: string) {
   const empty: T[] = [];
@@ -90,8 +90,20 @@ export const useGranteeReports = reports.useList;
 export const useGranteePayments = paymentRequests.useList;
 export const useGranteeSession = session.useList;
 
+/** Saves a report. A resubmission replaces the earlier version for that period. */
 export function addGranteeReport(r: GranteeReport) {
-  reports.write([...reports.read(), r]);
+  reports.write([
+    ...reports.read().filter((x) => !(x.grantId === r.grantId && x.reportId === r.reportId)),
+    r,
+  ]);
+}
+
+export function reviewGranteeReport(id: string, review: StaffReview & { decision: ReportDecision }) {
+  reports.write(reports.read().map((x) => (x.id === id ? { ...x, review } : x)));
+}
+
+export function reviewPaymentRequest(id: string, status: "Approved" | "Returned", review: StaffReview) {
+  paymentRequests.write(paymentRequests.read().map((x) => (x.id === id ? { ...x, status, review } : x)));
 }
 
 export function addPaymentRequest(p: PaymentRequest) {
