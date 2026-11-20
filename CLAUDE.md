@@ -47,7 +47,10 @@ The product owner has no coding experience. Claude writes all the code.
 
 ## Online test site
 
+- Live test site: https://grants-prototype.vercel.app (Vercel project `toner5/grants-prototype`, Hobby plan).
 - Code lives in the private GitHub repo https://github.com/btoner25/grants-prototype (branch `main`).
+- Vercel CLI is installed globally; run `vercel` commands from PowerShell (the Git Bash shim breaks).
+  `.vercel/` and `.env.local` (Vercel's OIDC token) are git-ignored and must stay that way.
 - Vercel deploys from that repo. Pushing to `main` updates the live test site automatically, so
   after each commit the user approves, offer to push it (`git push`).
 - The site tells search engines not to list it (`next.config.ts` headers and layout metadata).
