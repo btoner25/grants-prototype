@@ -45,6 +45,13 @@ The product owner has no coding experience. Claude writes all the code.
 
 `npm run dev` in this folder, then open http://localhost:3000.
 
+## Online test site
+
+- Code lives in the private GitHub repo https://github.com/btoner25/grants-prototype (branch `main`).
+- Vercel deploys from that repo. Pushing to `main` updates the live test site automatically, so
+  after each commit the user approves, offer to push it (`git push`).
+- The site tells search engines not to list it (`next.config.ts` headers and layout metadata).
+
 ## Decisions log
 
 - 2026-11-18: Chose Next.js + Tailwind. Phase 0 setup complete.
