@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   },
   description:
     "Prototype of a grants management system for the State of Minnesota. Fake data only.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -117,3 +117,13 @@ export function signInGrantee(accountId: string) {
 export function signOutGrantee() {
   session.write([]);
 }
+
+/** Erases everything testers entered in this browser (opportunities,
+ * applications, reports, payment requests and the grantee sign-in). */
+export function resetDemoData() {
+  opps.write([]);
+  subs.write([]);
+  reports.write([]);
+  paymentRequests.write([]);
+  session.write([]);
+}
