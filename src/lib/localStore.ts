@@ -2,6 +2,7 @@
 // browser's localStorage. Phase 2 replaces this with a real database.
 import { useSyncExternalStore } from "react";
 import type { CustomOpportunity, Submission } from "./formTypes";
+import type { GranteeReport, PaymentRequest } from "./granteeData";
 
 function createStore<T>(key: string) {
   const empty: T[] = [];
@@ -77,4 +78,30 @@ const noopSubscribe = () => () => {};
 /** False during the server render and first hydration pass, true after. */
 export function useHydrated() {
   return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
+// Grantee portal: submitted progress reports, payment requests, and the
+// simulated sign-in (which fictional grantee account is "signed in").
+const reports = createStore<GranteeReport>("gms.granteeReports.v1");
+const paymentRequests = createStore<PaymentRequest>("gms.paymentRequests.v1");
+const session = createStore<{ accountId: string }>("gms.granteeSession.v1");
+
+export const useGranteeReports = reports.useList;
+export const useGranteePayments = paymentRequests.useList;
+export const useGranteeSession = session.useList;
+
+export function addGranteeReport(r: GranteeReport) {
+  reports.write([...reports.read(), r]);
+}
+
+export function addPaymentRequest(p: PaymentRequest) {
+  paymentRequests.write([...paymentRequests.read(), p]);
+}
+
+export function signInGrantee(accountId: string) {
+  session.write([{ accountId }]);
+}
+
+export function signOutGrantee() {
+  session.write([]);
 }

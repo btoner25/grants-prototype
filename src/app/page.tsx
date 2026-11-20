@@ -3,9 +3,15 @@ import Link from "next/link";
 const roles = [
   {
     href: "/opportunities",
-    title: "Applicants and grantees",
+    title: "Applicants",
     body: "Browse open funding opportunities and start an application.",
     cta: "Find grants",
+  },
+  {
+    href: "/grantee",
+    title: "Current grantees",
+    body: "Sign in to submit progress reports, request payments and upload documents.",
+    cta: "Open grantee portal",
   },
   {
     href: "/review",
@@ -28,10 +34,10 @@ export default function Home() {
         Grants Management Prototype
       </h1>
       <p className="mt-3 max-w-2xl text-lg leading-8 text-zinc-700">
-        Click through the grant lifecycle from three points of view. Nothing you
-        enter is saved.
+        Click through the grant lifecycle from four points of view. Anything you
+        enter is saved only in this web browser.
       </p>
-      <ul className="mt-10 grid gap-6 sm:grid-cols-3">
+      <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {roles.map((r) => (
           <li
             key={r.href}

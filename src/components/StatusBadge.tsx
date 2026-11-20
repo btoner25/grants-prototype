@@ -11,6 +11,9 @@ const styles: Record<string, string> = {
   "On time": "bg-green-100 text-green-900 border-green-300",
   "Due soon": "bg-amber-100 text-amber-950 border-amber-300",
   Overdue: "bg-red-100 text-red-900 border-red-300",
+  Upcoming: "bg-zinc-100 text-zinc-800 border-zinc-300",
+  Paid: "bg-green-100 text-green-900 border-green-300",
+  "Pending review": "bg-amber-100 text-amber-950 border-amber-300",
 };
 
 export default function StatusBadge({ status }: { status: string }) {

@@ -55,3 +55,9 @@ The product owner has no coding experience. Claude writes all the code.
   live at `/grant?id=` and `/grant/apply?id=`, and forms render through `src/components/DynamicForm.tsx`.
   Builder data and applications are stored in browser localStorage (`src/lib/localStore.ts`) until
   Phase 2 adds a database. Every form always includes org info, amount requested and certification.
+- 2026-11-19: Added the Grantee portal (`/grantee`). Sign-in is simulated (pick a fictional
+  account, no passwords) until Phase 2 adds real auth with MFA. Each grantee sees only their own
+  grants (`src/lib/granteeData.ts`) and can submit progress reports and payment requests with
+  attachments. Payment requests are blocked while any report is overdue (F-12). Uploaded files are
+  stored in browser IndexedDB (`src/lib/fileStore.ts`); type/size limits in `src/components/FileUpload.tsx`.
+  Dates from timestamps must use `localDay()` (local time), not `.slice(0, 10)` (UTC).

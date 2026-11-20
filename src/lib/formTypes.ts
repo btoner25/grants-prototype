@@ -248,3 +248,11 @@ export function validateForPublish(o: CustomOpportunity): PublishIssue[] {
   });
   return issues;
 }
+
+/** The local calendar date (YYYY-MM-DD) of an ISO timestamp, so evening
+ * submissions in Minnesota don't show up dated the next day (UTC). */
+export function localDay(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
